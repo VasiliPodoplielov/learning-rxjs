@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { delay, mergeMap, Observable, of, Subject } from 'rxjs';
 
 interface Weather {
   city: string;
@@ -14,11 +14,22 @@ interface Weather {
 })
 export class AppComponent implements OnInit {
   displayWeather: Weather[] = [];
+  citySubject = new Subject<string>();
 
   ngOnInit() {
+    this.citySubject.pipe(
+      mergeMap((city) => {
+        return this.getWeather(city).pipe(
+          delay(1000)
+        )
+      })
+    ).subscribe((weather) => {
+      this.displayWeather.push(weather);
+    });
   }
 
   submitCity(city: string) {
+    this.citySubject.next(city);
   }
 
   getWeather(city: string): Observable<Weather> {
